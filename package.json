@@ -3,7 +3,7 @@
   "lockfileVersion": 1,
   "dependencies": {
     "bcrypt": "^0.8.5",
-    "body-parser": "*",
+    "body-parser": "^1.18.3",
     "ejs": "^2.6.1",
     "express": "*"
   },
