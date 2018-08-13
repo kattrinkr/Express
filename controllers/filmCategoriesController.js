@@ -1,4 +1,4 @@
-function getQuery(req, res) {
+function getFilmCategories(req, res) {
     if (req.params.id) {
         res.redirect('')
     } else {
@@ -6,7 +6,7 @@ function getQuery(req, res) {
     }
 }
 
-function postQuery(req, res) {
+function createFilmCategory(req, res) {
     if (req.params.id) {
         res.redirect('')
     } else {
@@ -20,7 +20,7 @@ function postQuery(req, res) {
     }
 }
 
-function putQuery(req, res) {
+function editFilmCategory(req, res) {
     if (req.params.id) {
         const MODIFY_OBJECT = {
             id: req.params.id,
@@ -34,7 +34,7 @@ function putQuery(req, res) {
     }
 }
 
-function deleteQuery(req, res) {
+function removeFilmCategory(req, res) {
     if (req.params.id) {
         const DELETED_OBJECT = {
             success: true,
@@ -46,4 +46,4 @@ function deleteQuery(req, res) {
     }
 }
 
-export {getQuery, postQuery, putQuery, deleteQuery}
+export {getFilmCategories, createFilmCategory, editFilmCategory, removeFilmCategory}

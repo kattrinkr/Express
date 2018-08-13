@@ -1,12 +1,12 @@
-function getQuery(req, res) {
+function getFilms(req, res) {
     if (req.params.id) {
-        result = res.redirect('')
+        res.redirect('')
     } else {
-        result = res.send([])
+        res.send([])
     }
 }
 
-function postQuery(req, res) {
+function createFilm(req, res) {
     if (req.params.id) {
         res.redirect('')
     } else {
@@ -23,7 +23,7 @@ function postQuery(req, res) {
     }
 }
 
-function putQuery(req, res) {
+function editFilm(req, res) {
     if (req.params.id) {
         const MODIFY_OBJECT = {
             id: req.params.id,
@@ -40,7 +40,7 @@ function putQuery(req, res) {
     }
 }
 
-function deleteQuery(req, res) {
+function removeFilm(req, res) {
     if (req.params.id) {
         const DELETED_OBJECT = {
             success: true,
@@ -52,4 +52,4 @@ function deleteQuery(req, res) {
     }
 }
 
-export {getQuery, postQuery, putQuery, deleteQuery}
+export {getFilms, createFilm, editFilm, removeFilm}
