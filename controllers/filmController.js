@@ -1,4 +1,5 @@
 function getFilms(req, res) {
+    console.log(req.method);
     if (req.params.id) {
         res.redirect('')
     } else {
@@ -7,9 +8,8 @@ function getFilms(req, res) {
 }
 
 function createFilm(req, res) {
-    if (req.params.id) {
-        res.redirect('')
-    } else {
+    console.log(req.method);
+    if (Object.keys(res.locals.errors).length === 0) {
         const MODIFY_OBJECT = {
             id: req.body.id,
             title: req.body.title,
@@ -24,7 +24,8 @@ function createFilm(req, res) {
 }
 
 function editFilm(req, res) {
-    if (req.params.id) {
+    console.log(req.method);
+    if (Object.keys(res.locals.errors).length === 0) {
         const MODIFY_OBJECT = {
             id: req.params.id,
             title: req.body.title,
@@ -35,12 +36,11 @@ function editFilm(req, res) {
             category: req.body.category
         }
         res.send(MODIFY_OBJECT);
-    } else {
-        res.send(`Wrong ID!`)
-    }
+    } 
 }
 
 function removeFilm(req, res) {
+    console.log(req.method);
     if (req.params.id) {
         const DELETED_OBJECT = {
             success: true,
