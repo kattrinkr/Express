@@ -1,0 +1,20 @@
+.gallery {
+    text-align: center;
+}
+
+.gallery_film {
+    width: 400px; 
+    border-bottom: solid black 2px; 
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.gallery_paging {
+    margin: 20px;
+    font-size: 20px;
+}
+
+.gallery_panging-link {
+    text-decoration: none;
+    color: rgb(94, 168, 190);
+}
