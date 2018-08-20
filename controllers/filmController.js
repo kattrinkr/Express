@@ -1,5 +1,16 @@
-//import {db} from '../app'
 import mongoose from 'mongoose'
+
+var filmSchema = mongoose.Schema({
+    _id: mongoose.Schema.Types.ObjectId,
+    title: String,
+    description: String,
+    avatar: String,
+    gallery: Array,
+    rating: Number,
+    category: String
+});
+ 
+var Films = mongoose.model('Film', filmSchema);
 
 function getFilms(req, res) {
         const page = req.params.page ? req.params.page : 1;
@@ -9,58 +20,44 @@ function getFilms(req, res) {
         let search = {};
         if (req.params.category) {
             search.category = req.params.category;
-        } else {
-            search.category = {
-                $ne: 'undefind'
-            }
-        }
-        db.collection('films').countDocuments(search).then((total) => {
-            db.collection('films').find(search).skip((page - 1) * limit).limit(limit).toArray(function(err, items) {
+        } 
+        Films.countDocuments(search, function(err, count) {
+            Films.find(search)
+            .limit(limit)
+            .skip((page - 1) * limit)
+            .exec( function(err, items) { 
                 if (err) {
                     return console.error(err)
                 } else {
                     if (page * limit > limit) {
                         prev = true;
                     }
-                    if (page * limit < total) {
+                    if (page * limit < count) {
                         next = true;
                     }
                     return res.render('../public/films.ejs', {films: items, next: next, prev: prev, page: page, category: req.params.category});
                 }
-            })
+             })
         })
 }
-
-var authorSchema = mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
-    name: {
-        firstName: {
-            type: String,
-            required: true
-        },
-        lastName: String
-    },
-    title: String,
-    description
-
-});
- 
-var Author = mongoose.model('Author', authorSchema);
 
 function createFilm(req, res) {
     console.log(req.method);
     if (Object.keys(res.locals.errors).length === 0) {
-        db.collection('films').findOne({id: {$eq : req.body.id}}, (err, result) =>{
-            if (!result) {
-                db.collection('films').insertOne(req.body, (err, result) => {
-                    if (err) {
-                        return console.error(err)
-                    } else {
-                        res.send(req.body);
-                    }
-                })
+        let film = new Films ({ 
+            _id: new mongoose.Types.ObjectId(),
+            title: req.body.title,
+            description: req.body.description,
+            avatar: req.body.avatar,
+            gallery: req.body.gallery,
+            rating: req.body.rating,
+            category: req.body.category
+        })
+        film.save(function(err) {
+            if (err) {
+                throw err
             } else {
-                res.send(`Item with ID ${req.body.id} is already exist`)
+                res.send(req.body)
             }
         })
     } 
@@ -69,30 +66,40 @@ function createFilm(req, res) {
 function editFilm(req, res) {
     console.log(req.method);
     if (Object.keys(res.locals.errors).length === 0) {
-        db.collection('films').findOne({id: {$eq : req.params.id}}, (err, result) =>{
+        Films.findById(req.params.id, function(err, film) {
             if (err) {
-                return console.error(err)
+                res.send(`Item with ID ${req.params.id} is not exist`)
             } else {
-                if (result) {
-                    db.collection('films').updateOne({ id: req.params.id},{$set :req.body});
-                    req.body.id = req.params.id;
-                    res.send(req.body);
-                } else {
-                    res.send(`Item with ID ${req.params.id} is not exist`)
-                }
+                film.title = req.body.title;
+                film. description = req.body.description;
+                film.avatar = req.body.avatar;
+                film.gallery = req.body.gallery;
+                film.rating = req.body.rating;
+                film.category = req.body.category;
+             
+                film.save(function(err) {
+                    if (err) {
+                        throw err
+                    } else {
+                        res.send(req.body)
+                    }
+                })
             }
-        })
+        });
     } 
 }
 
 function removeFilm(req, res) {
     console.log(req.method);
-    db.collection('films').findOne({id: {$eq : req.params.id}}, (err, result) =>{
-        if (result) {
-            db.collection('films').deleteOne({ id: req.params.id}, (err, result) => {
+    Films.findById(req.params.id, function(err, film) {
+        if (err || !film) {
+            res.send(`Item with ID ${req.params.id} is not exist`)
+        } else {
+            film.remove(function(err) {
                 if (err) {
-                    return console.error(err)
-                } else {
+                    throw err
+                }
+                else {
                     const DELETED_OBJECT = {
                         success: true,
                         id: req.params.id
@@ -100,10 +107,8 @@ function removeFilm(req, res) {
                     res.send(DELETED_OBJECT);
                 }
             })
-        } else {
-            res.send(`Item with ID ${req.params.id} is not exist`)
         }
-    })
+    });
 }
 
 export {getFilms, createFilm, editFilm, removeFilm}

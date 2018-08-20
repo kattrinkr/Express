@@ -2,16 +2,13 @@ import express from 'express'
 import bodyPaser from 'body-parser'
 import {router as filmsRouter} from './routes/films.js'
 import mongoose from 'mongoose'
-import { MongoClient } from 'mongodb'
 
 const ERROR_MESSAGE = { Error: 'URL not found' };
 const app = express();
-//let db;
 
-async function app() {
-    mongoose.connect('mongodb://users:a7465315@ds235181.mlab.com:35181/films');
+async function run() {
+    mongoose.connect('mongodb://users:aA7465315@ds125472.mlab.com:25472/film_gallery', { useNewUrlParser: true });
     await mongoose.connection.dropDatabase();
-    
     app.use(express.static(__dirname + '/public'))
     app.use(bodyPaser.json());
     app.use(bodyPaser.urlencoded({ extended: true }));
@@ -22,7 +19,4 @@ async function app() {
     })
     app.listen(process.env.PORT || 3000, () => console.log('App is listening!'));
 }
-
-app().catch(error => console.error(error.stack));
-//export {db}
-
+run().catch(error => console.error(error.stack));
