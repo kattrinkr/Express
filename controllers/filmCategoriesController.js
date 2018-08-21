@@ -9,17 +9,15 @@ var categorySchema = mongoose.Schema({
  
 var Category = mongoose.model('Film_Categories', categorySchema);
 
-function getFilmCategories(req, res) {
+async function getFilmCategories(req, res) {
     console.log(req.method);
-    if (req.params.id) {
-        res.redirect('')
-    } else {
-        const page = req.params.page ? req.params.page : 1;
-        const limit = 3;
-        const num = page * limit;
-        let prev = false;
-        let next = false;
-        Category.countDocuments({}, function(err, count) {
+    const page = req.params.page ? req.params.page : 1;
+    const limit = 3;
+    const num = page * limit;
+    let prev = false;
+    let next = false;
+    try {
+        await Category.countDocuments({}, function(err, count) {
             Category.find()
             .limit(limit)
             .skip((page - 1) * limit)
@@ -37,10 +35,12 @@ function getFilmCategories(req, res) {
                 }      
             })
         })
-    }
+        } catch (err) {
+            res.status(500).send(err);
+        }
 }
 
-function createFilmCategory(req, res) {
+async function createFilmCategory(req, res) {
     console.log(req.method);
     if (Object.keys(res.locals.errors).length === 0) {
         let category = new Category ({ 
@@ -49,28 +49,31 @@ function createFilmCategory(req, res) {
             description: req.body.description,
             films: req.body.films
         })
-        category.save(function(err) {
-            if (err) {
-                throw err
-            } else {
-                res.send(req.body)
+        try {
+            await category.save();
+            res.send(req.body);
+        } catch (err) {
+            if (err.name === 'MongoError' && err.code === 11000) {
+                res.status(409).send('Duplicate key');
             }
-        })
+            res.status(500).send(err);
+        }
     }
 }
 
-function editFilmCategory(req, res) {
+async function editFilmCategory(req, res) {
     console.log(req.method);
     if (Object.keys(res.locals.errors).length === 0) {
-        Category.findById(req.params.id, function(err, category) {
-            if (err) {
-                res.send(`Item with ID ${req.params.id} is not exist`)
+        try {
+            let categoryItem = await Category.findById(req.params.id);
+            if (!categoryItem) {
+                return res.status(404).send(`Item with ID ${req.params.id} is not exist`);
             } else {
-                category.title = req.body.title;
-                category. description = req.body.description;
-                category.films = req.body.films;
+                categoryItem.title = req.body.title;
+                categoryItem.description = req.body.description;
+                categoryItem.films = req.body.films;
              
-                category.save(function(err) {
+                categoryItem.save(function(err) {
                     if (err) {
                         throw err
                     } else {
@@ -78,30 +81,28 @@ function editFilmCategory(req, res) {
                     }
                 })
             }
-        });
+        } catch (err) {
+            res.status(500).send(`Item with ID ${req.params.id} is not exist`);
+        }
     }
 }
 
-function removeFilmCategory(req, res) {
+async function removeFilmCategory(req, res) {
     console.log(req.method);
-    Category.findById(req.params.id, function(err, category) {
-        if (err || !category) {
-            res.send(`Item with ID ${req.params.id} is not exist`)
+    try {
+        let categoryItem = await Category.findOneAndRemove({_id: req.params.id});
+        if (!categoryItem) {
+            return res.status(404).send(`Item with ID ${req.params.id} is not exist`);
         } else {
-            category.remove(function(err) {
-                if (err) {
-                    throw err
-                }
-                else {
-                    const DELETED_OBJECT = {
-                        success: true,
-                        id: req.params.id
-                    }
-                    res.send(DELETED_OBJECT);
-                }
-            })
+            const DELETED_OBJECT = {
+                success: true,
+                id: req.params.id
+            }
+            res.send(DELETED_OBJECT);
         }
-    });
+    } catch (err) {
+        res.status(500).send(`Item with ID ${req.params.id} is not exist`);
+    }
 }
 
 export {getFilmCategories, createFilmCategory, editFilmCategory, removeFilmCategory}

@@ -12,16 +12,17 @@ var filmSchema = mongoose.Schema({
  
 var Films = mongoose.model('Film', filmSchema);
 
-function getFilms(req, res) {
-        const page = req.params.page ? req.params.page : 1;
-        const limit = 3;
-        let prev = false;
-        let next = false;
-        let search = {};
-        if (req.params.category) {
-            search.category = req.params.category;
-        } 
-        Films.countDocuments(search, function(err, count) {
+async function getFilms(req, res) {
+    const page = req.params.page ? req.params.page : 1;
+    const limit = 3;
+    let prev = false;
+    let next = false;
+    let search = {};
+    if (req.params.category) {
+        search.category = req.params.category;
+    } 
+    try {
+        await Films.countDocuments(search, function(err, count) {
             Films.find(search)
             .limit(limit)
             .skip((page - 1) * limit)
@@ -39,9 +40,12 @@ function getFilms(req, res) {
                 }
              })
         })
+    } catch (err) {
+        res.status(500).send(err);
+    }
 }
 
-function createFilm(req, res) {
+async function createFilm(req, res) {
     console.log(req.method);
     if (Object.keys(res.locals.errors).length === 0) {
         let film = new Films ({ 
@@ -53,31 +57,34 @@ function createFilm(req, res) {
             rating: req.body.rating,
             category: req.body.category
         })
-        film.save(function(err) {
-            if (err) {
-                throw err
-            } else {
-                res.send(req.body)
+        try {
+            await film.save();
+            res.send(req.body);
+        } catch (err) {
+            if (err.name === 'MongoError' && err.code === 11000) {
+                res.status(409).send('Duplicate key');
             }
-        })
+            res.status(500).send(err);
+        }
     } 
 }
 
-function editFilm(req, res) {
+async function editFilm(req, res) {
     console.log(req.method);
     if (Object.keys(res.locals.errors).length === 0) {
-        Films.findById(req.params.id, function(err, film) {
-            if (err) {
-                res.send(`Item with ID ${req.params.id} is not exist`)
+        try {
+            let filmItem = await Films.findById(req.params.id);
+            if (!filmItem) {
+                return res.status(404).send(`Item with ID ${req.params.id} is not exist`);
             } else {
-                film.title = req.body.title;
-                film. description = req.body.description;
-                film.avatar = req.body.avatar;
-                film.gallery = req.body.gallery;
-                film.rating = req.body.rating;
-                film.category = req.body.category;
+                filmItem.title = req.body.title;
+                filmItem. description = req.body.description;
+                filmItem.avatar = req.body.avatar;
+                filmItem.gallery = req.body.gallery;
+                filmItem.rating = req.body.rating;
+                filmItem.category = req.body.category;
              
-                film.save(function(err) {
+                filmItem.save(function(err) {
                     if (err) {
                         throw err
                     } else {
@@ -85,30 +92,28 @@ function editFilm(req, res) {
                     }
                 })
             }
-        });
+        } catch (err) {
+            res.status(500).send(`Item with ID ${req.params.id} is not exist`);
+        }
     } 
 }
 
-function removeFilm(req, res) {
+async function removeFilm(req, res) {
     console.log(req.method);
-    Films.findById(req.params.id, function(err, film) {
-        if (err || !film) {
-            res.send(`Item with ID ${req.params.id} is not exist`)
+    try {
+        let filmItem = await Films.findOneAndRemove({_id: req.params.id});
+        if (!filmItem) {
+            return res.status(404).send(`Item with ID ${req.params.id} is not exist`);
         } else {
-            film.remove(function(err) {
-                if (err) {
-                    throw err
-                }
-                else {
-                    const DELETED_OBJECT = {
-                        success: true,
-                        id: req.params.id
-                    }
-                    res.send(DELETED_OBJECT);
-                }
-            })
+            const DELETED_OBJECT = {
+                success: true,
+                id: req.params.id
+            }
+            res.send(DELETED_OBJECT);
         }
-    });
+    } catch (err) {
+        res.status(500).send(`Item with ID ${req.params.id} is not exist`);
+    }
 }
 
 export {getFilms, createFilm, editFilm, removeFilm}
