@@ -1,43 +1,44 @@
 import {REG, ERRORS} from '../constants/films'
 
 function filmsValidator (req, res, next) {
-    res.locals.errors = {};
+    let errors = {};
     if (!req.body.title) {
-        res.locals.errors.title = ERRORS.title.there
+        errors.title = ERRORS.title.there
     } else if (req.body.title.length < 3) {
-        res.locals.errors.title = ERRORS.title.minLength
+        errors.title = ERRORS.title.minLength
     }
     if (!req.body.description) {
-        res.locals.errors.description = ERRORS.description.there
+        errors.description = ERRORS.description.there
     } else if (req.body.description.length < 3) {
-        res.locals.errors.description = ERRORS.description.minLength
+        errors.description = ERRORS.description.minLength
     } else if (req.body.description.length > 500) {
-        res.locals.errors.description = ERRORS.description.maxLength
+        errors.description = ERRORS.description.maxLength
     }
     if (!req.body.avatar) {
-        res.locals.errors.avatar = ERRORS.avatar.there
+        errors.avatar = ERRORS.avatar.there
     } else if (!REG.test(req.body.avatar)) {
-        res.locals.errors.avatar = ERRORS.avatar.isLink
+        errors.avatar = ERRORS.avatar.isLink
     }
     if (!req.body.gallery) {
-        res.locals.errors.gallery = ERRORS.gallery.there
+        errors.gallery = ERRORS.gallery.there
     } else if (!(req.body.gallery instanceof Array)) {
-        res.locals.errors.gallery = ERRORS.gallery.isArray
+        errors.gallery = ERRORS.gallery.isArray
     } else if (req.body.gallery.length < 4) {
-        res.locals.errors.gallery = ERRORS.gallery.minLength
+        errors.gallery = ERRORS.gallery.minLength
     } else {
         let result = req.body.gallery.filter((item) => REG.test(item));
         if (result.length !== req.body.gallery.length) {
-            res.locals.errors.gallery = ERRORS.gallery.isLink
+            errors.gallery = ERRORS.gallery.isLink
         }
     }
     if (req.body.rating && (req.body.rating < 0 || req.body.rating > 5)) {
-        res.locals.errors.rating = ERRORS.rating.range
+        errors.rating = ERRORS.rating.range
     }
-    if (Object.keys(res.locals.errors).length !== 0) {
-        res.status(422).json(res.locals.errors)
+    if (Object.keys(errors).length !== 0) {
+        res.status(422).json(errors)
+    } else {
+        next()
     }
-    next(); 
 };
 
 export {filmsValidator}
