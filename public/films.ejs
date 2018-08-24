@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="/css/films.css">
+    <title>Films</title>
+</head>
+<body>
+    <div class='gallery'>
+        <% films.map(function(item) { %>        
+            <div class='gallery_film'>
+                <h3>ID: <%= item.id %></h3>
+                <h3>Title: <%= item.title %></h3>
+                <span>Category: <%= item.category %></span>
+                <p>Description: <%= item.description %></p>
+                <span>Rating: <%= item.rating %></span>   
+            </div>
+        <% }) %>
+        <div class='gallery_paging'>
+            <% if (prev) { %>
+                <% if (category) { %>
+                    <a href="/api/films/<%= (category+ '/') %>pages/<%= (+page - 1) %>" class='gallery_panging-link'>Prev</a>
+                <% } else { %>
+                    <a href="/api/films/pages/<%= (+page - 1) %>" class='gallery_panging-link'>Prev</a>
+                <% } %>
+            <% } %>
+            <% if (next) { %>
+                <% if (category) { %>
+                    <a href="/api/films/<%= (category+ '/') %>pages/<%= (+page + 1) %>" class='gallery_panging-link'>Next</a>
+                <% } else { %>
+                    <a href="/api/films/pages/<%= (+page + 1) %>" class='gallery_panging-link'>Next</a>
+                <% } %>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>
